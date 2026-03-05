@@ -31,7 +31,7 @@ def get_goa_token(acc_id):
                "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
         # Added timeout=5 for gdbus
         return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
-     except: return None
+    except: return None
 
 def fetch_via_caldav(user, token):
     url = f"https://apidata.googleusercontent.com/caldav/v2/{user}/events"
@@ -83,15 +83,15 @@ def fetch_via_caldav(user, token):
                 d = start[6:8]
                 m_index = int(start[4:6])
                 m = meseci[m_index]
-                vreme = f"[{start[9:11]}:{start[11:13]}] " if "T" in start else ""
-                print(f"{d}. {m}  —  {vreme}{clean_title}")
+                time = f"[{start[9:11]}:{start[11:13]}] " if "T" in start else ""
+                print(f"{d}. {m}  —  {time}{clean_title}")
             except: continue
             
     except: pass
 
 if __name__ == "__main__":
-    accounts = get_goa_accounts()
-    for account in accounts:
-        token = get_goa_token(account['id'])
+    nalozi = get_goa_accounts()
+    for nalog in nalozi:
+        token = get_goa_token(nalog['id'])
         if token:
-            fetch_via_caldav(account['user'], token)
+            fetch_via_caldav(nalog['user'], token)
