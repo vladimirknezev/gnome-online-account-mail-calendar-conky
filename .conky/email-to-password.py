@@ -15,12 +15,13 @@ IMAP_SERVER = "imap.yourprovider.com" # e.g., imap.mail.yahoo.com or imap.aol.co
 # Connection timeout to prevent Conky from freezing
 socket.setdefaulttimeout(15)
 
-def fetch_conky_emails(count=3):
+def fetch_conky_emails(count=2):
+    mail = None
     try:
         # Establish a secure connection to the IMAP server
         mail = imaplib.IMAP4_SSL(IMAP_SERVER)
         mail.login(EMAIL, PASSWORD)
-        mail.select("INBOX")
+        mail.select("INBOX", readonly=True)
 
         # Search for all messages
         status, messages = mail.search(None, 'ALL')
@@ -28,6 +29,9 @@ def fetch_conky_emails(count=3):
         
         if not mail_ids:
             return
+
+        # HEADER - Identical to your GOA script style
+        print(f"--- {EMAIL.upper()} ---")
 
         # Process the most recent emails
         for mail_id in reversed(mail_ids[-count:]):
@@ -37,27 +41,28 @@ def fetch_conky_emails(count=3):
                 if isinstance(response, tuple):
                     msg = email.message_from_bytes(response[1])
                     
-                    # DECODE SENDER
+                    # 1. DECODE SENDER
                     from_h = decode_header(msg.get("From", "Unknown"))[0]
                     sender = from_h[0]
                     if isinstance(sender, bytes):
                         sender = sender.decode(from_h[1] or "utf-8", errors='ignore')
                     
-                    # DECODE SUBJECT (Handling special characters)
+                    # 2. DECODE SUBJECT
                     subj_h = decode_header(msg.get("Subject", "No Subject"))[0]
                     subject = subj_h[0]
                     if isinstance(subject, bytes):
                         subject = subject.decode(subj_h[1] or "utf-8", errors='ignore')
 
-                    # FORMAT DATE
+                    # 3. FORMAT DATE
                     date_raw = msg.get("Date")
                     try:
                         dt = parsedate_to_datetime(date_raw).astimezone()
-                        date_display = dt.strftime("%d. %b %H:%M")
+                        # Matching the format from your successful tests: "05 Mar 13:58"
+                        date_display = dt.strftime("%d %b %H:%M")
                     except: 
                         date_display = date_raw
 
-                    # EXTRACT BODY
+                    # 4. EXTRACT BODY (Strictly Plain Text to avoid HTML code in Conky)
                     body = ""
                     if msg.is_multipart():
                         for part in msg.walk():
@@ -73,18 +78,19 @@ def fetch_conky_emails(count=3):
 
                     # Clean and truncate text for Conky layout
                     clean_text = " ".join(body.replace("\n", " ").split())
-                    short_text = (clean_text[:150] + "...") if len(clean_text) > 150 else clean_text
+                    short_text = (clean_text[:100] + "...") if len(clean_text) > 100 else clean_text
 
-                    # OUTPUT FOR CONKY
-                    print(f"DATE: {date_display}")
+                    # STANDARDIZED OUTPUT
+                    print(f"TIME: {date_display}")
                     print(f"FROM: {sender}")
                     print(f"SUBJ: {subject}")
-                    print(f"TEXT: {short_text}")
-                    print("-" * 35)
+                    print(f"BODY: {short_text}")
+                    print("-" * 40) # Standard separator length
 
         mail.logout()
     except Exception as e:
-        print(f"Connection Error: {e}")
+        # Silently fail or minimal error for Conky stability
+        pass
 
 if __name__ == "__main__":
-    fetch_conky_emails(3)
+    fetch_conky_emails(2)
