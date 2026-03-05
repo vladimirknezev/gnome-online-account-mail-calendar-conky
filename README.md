@@ -28,24 +28,24 @@ sudo apt install python3-dbus python3-gi gir1.2-edataserver-1.2 libsecret-tools 
 ## 📖 Setup Instructions
 Follow these steps to get the scripts running on your system:
 
-**1️⃣ GNOME Online Accounts (GOA) Login
+1️⃣ GNOME Online Accounts (GOA) Login
 Open your system Settings and navigate to Online Accounts.
 
 Log in to your Google or Microsoft accounts. The scripts will automatically detect these sessions.
 
-**2️⃣ Folder Configuration
+2️⃣ Folder Configuration
 Create a folder named .conky in your Home directory: mkdir -p ~/.conky
 
 Copy mail.py and calendar.py into the ~/.conky/ folder.
 
-**3️⃣ Grant Execution Permissions
+3️⃣ Grant Execution Permissions
 You must allow the system to run these scripts as programs. Open your terminal and run:
 
 ```bash
 chmod +x ~/.conky/mail.py
 chmod +x ~/.conky/calendar.py
 ```
-**4️⃣ Activation
+4️⃣ Activation
 Open Conky Manager on your Linux distribution.
 
 Refresh the list of widgets and scripts.
