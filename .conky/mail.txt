@@ -1,0 +1,34 @@
+conky.config = {
+    alignment = 'middle_middle',
+    background = false,
+    border_width = 1,
+    default_color = 'd6d6d6',
+    double_buffer = true,
+    draw_borders = false,
+    gap_x = 70,
+    gap_y = 200, 
+    maximum_width = 320,
+    minimum_width = 320,
+    no_buffers = true,
+    own_window = true,
+    own_window_type = 'normal',
+    own_window_transparent = false,
+    own_window_argb_visual = true,
+    own_window_argb_value = 13,
+    own_window_hints = 'undecorated,below,sticky,skip_taskbar,skip_pager',
+    update_interval = 1.0, 
+    use_xft = true,
+    font = 'Roboto-Light:pixelsize=10',
+    color1 = '00ffff',
+    color2 = 'fff000',
+    color3 = 'ffffff',
+    color4 = '3cffa8',
+    color5 = 'ff5c5c',
+    color6 = 'af87ff',
+    color7 = 'ff00ff',
+};
+
+conky.text = [[
+${color2}${font Z003:bold:pixelsize=20}MAIL ${hr}
+${font FreeSans:pixelsize=13}${color1}${execi 60 python3 ~/.conky/mail.py}
+]];
