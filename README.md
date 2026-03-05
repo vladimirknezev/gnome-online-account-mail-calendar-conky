@@ -13,7 +13,28 @@
 
 ## 📁 Scripts
 1.  **`mail.py`**: Fetches the latest unread emails from your connected Gmail or Outlook accounts.
-2.  **`calendar.py`**: Retrieves upcoming events from your synchronized Google or Microsoft calendars.
+2.  **`email-to-password.py`**: (Alternative) Uses IMAP login with App Passwords. Use this for Yahoo, AOL, or providers that don't support GOA tokens.
+3.  **`calendar.py`**: Retrieves upcoming events from your synchronized Google or Microsoft calendars.
+
+---
+
+## 🔑 Special Note for Yahoo/AOL Users (Added to Setup)
+If you see an "Authentication Failed" or "Token Error" message for your account:
+
+Use the email-to-password.py script.
+
+Go to your provider's Account Security settings.
+
+Select "Generate App Password".
+
+Copy the 16-character code and paste it into the PASSWORD field in the script.
+
+## 🛡️ Why it's Legal and Secure
+Official Protocols: The scripts use standard IMAP and DBus interfaces provided by the OS and email providers.
+
+Local Processing: Your credentials and emails never leave your computer; they are sent directly to the email server via SSL.
+
+No Main Password: Using App Passwords ensures your primary account password remains private.
 
 ---
 
