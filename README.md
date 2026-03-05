@@ -76,5 +76,15 @@ Select the scripts to display them on your desktop.
 
 ---
 
+## Visual Overview (Screenshots)
+
+### 📧 Email Overview
+This shows how the script automatically groups unread emails by account (IMAP and Google OAuth2).
+![Mail Preview](mail.png)
+
+### 📅 Calendar and Holidays
+Display of upcoming religious, national holidays, and personal reminders.
+![Calendar Preview](calendar.png)
+---
 ## ⚖️ License
 This project is licensed under the MIT License - see the LICENSE file for details.
