@@ -68,13 +68,13 @@ def process_mail_engine(server, user, token, count=2):
                     msg = email.message_from_bytes(response[1])
                     
                     # 1. FROM (Sender)
-                    from_header = decode_header(msg.get("From", "Unknown"))[0]
+                    from_header = decode_header(msg.get("From", "Nepoznato"))[0]
                     sender = from_header[0]
                     if isinstance(sender, bytes):
                         sender = sender.decode(from_header[1] or "utf-8")
                     
                     # 2. SUBJECT
-                    subject_header = decode_header(msg.get("Subject", "No Subject"))[0]
+                    subject_header = decode_header(msg.get("Subject", "Bez naslova"))[0]
                     subject = subject_header[0]
                     if isinstance(subject, bytes):
                         subject = subject.decode(subject_header[1] or "utf-8")
@@ -104,10 +104,10 @@ def process_mail_engine(server, user, token, count=2):
                     clean_body = " ".join(body.replace("\n", " ").split())
                     short_body = (clean_body[:100] + "...") if len(clean_body) > 100 else clean_body
 
-                    print(f"TIME: {formatted_date}")
-                    print(f"FROM: {sender}")
-                    print(f"SUBJECT: {subject}")
-                    print(f"BODY: {short_body}")
+                    print(f"VREME: {formatted_date}")
+                    print(f"OD: {sender}")
+                    print(f"NASLOV: {subject}")
+                    print(f"TEKST: {short_body}")
                     print("-" * 40)
         mail.logout()
     except:
@@ -117,8 +117,8 @@ def process_mail_engine(server, user, token, count=2):
             except: pass
 
 if __name__ == "__main__":
-    accounts = get_online_accounts()
-    for account in accounts:
-        token = get_goa_token(account['id'])
+    nalozi = get_online_accounts()
+    for nalog in nalozi:
+        token = get_goa_token(nalog['id'])
         if token:
-            process_mail_engine(account['server'], account['user'], token)
+            process_mail_engine(nalog['server'], nalog['user'], token)
