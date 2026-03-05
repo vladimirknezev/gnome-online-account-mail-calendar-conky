@@ -21,8 +21,7 @@ def get_goa_accounts():
                 email = str(acc['PresentationIdentity'])
                 if "gmail.com" in email:
                     accounts.append({'id': path.split('/')[-1], 'user': email})
-    except: 
-        pass
+    except: pass
     return accounts
 
 def get_goa_token(acc_id):
@@ -32,8 +31,7 @@ def get_goa_token(acc_id):
                "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
         # Added timeout=5 for gdbus
         return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
-    except: 
-        return None
+     except: return None
 
 def fetch_via_caldav(user, token):
     url = f"https://apidata.googleusercontent.com/caldav/v2/{user}/events"
@@ -70,8 +68,7 @@ def fetch_via_caldav(user, token):
         titles = re.findall(r"SUMMARY:(.*)", response)
         starts = re.findall(r"DTSTART[:;](?:VALUE=DATE:)?(\d+T?\d*)", response)
 
-        if not titles: 
-            return
+        if not titles: return
 
         events = sorted(zip(starts, titles))
         months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -79,21 +76,18 @@ def fetch_via_caldav(user, token):
         seen = set()
         for start, title in events:
             clean_title = title.strip()
-            if clean_title in seen: 
-                continue
+            if clean_title in seen: continue
             seen.add(clean_title)
 
             try:
-                day = start[6:8]
-                month_index = int(start[4:6])
-                month_name = months[month_index]
-                time_info = f"[{start[9:11]}:{start[11:13]}] " if "T" in start else ""
-                print(f"{day}. {month_name}  —  {time_info}{clean_title}")
-            except: 
-                continue
+                d = start[6:8]
+                m_index = int(start[4:6])
+                m = meseci[m_index]
+                vreme = f"[{start[9:11]}:{start[11:13]}] " if "T" in start else ""
+                print(f"{d}. {m}  —  {vreme}{clean_title}")
+            except: continue
             
-    except: 
-        pass
+    except: pass
 
 if __name__ == "__main__":
     accounts = get_goa_accounts()
