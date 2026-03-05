@@ -2,9 +2,9 @@ import subprocess
 import dbus
 import datetime
 import re
-import socket
+import socket  # DODATO: Za kontrolu mrežnog vremena
 
-# KEY: If the internet doesn't respond within 10 seconds, terminate
+# KLJUČ: Ako internet ne odgovori u roku od 10 sekundi, prekini sve
 socket.setdefaulttimeout(10)
 
 def get_goa_accounts():
@@ -13,7 +13,7 @@ def get_goa_accounts():
         bus = dbus.SessionBus()
         manager_obj = bus.get_object('org.gnome.OnlineAccounts', '/org/gnome/OnlineAccounts')
         manager = dbus.Interface(manager_obj, 'org.freedesktop.DBus.ObjectManager')
-        # Added timeout for DBus query
+        # DODAT timeout za DBus upit
         objects = manager.GetManagedObjects(timeout=5)
         for path, interfaces in objects.items():
             if 'org.gnome.OnlineAccounts.Account' in interfaces:
@@ -29,7 +29,7 @@ def get_goa_token(acc_id):
         cmd = ["gdbus", "call", "--session", "--dest", "org.gnome.OnlineAccounts",
                "--object-path", f"/org/gnome/OnlineAccounts/Accounts/{acc_id}",
                "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
-        # Added timeout=5 for gdbus
+        # DODAT timeout=5 za gdbus
         return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
     except: return None
 
@@ -52,16 +52,16 @@ def fetch_via_caldav(user, token):
     </C:calendar-query>
     """
 
-    # Added --max-time 10 to curl (crucial for calendar stability)
+    # DODAT --max-time 10 u curl komandu (ovo je ključno za kalendar)
     cmd = ["curl", "-s", "--max-time", "10", "-X", "REPORT", url, 
            "-H", f"Authorization: Bearer {token}",
            "-H", "Content-Type: application/xml", "--data", xml_query]
 
     try:
-        # Added timeout=12 at subprocess level as double protection
+        # DODAT timeout=12 na nivou subprocess-a kao dupla zaštita
         response = subprocess.check_output(cmd, text=True, timeout=12)
         if not response or "<D:error" in response:
-            # Fallback to "primary" calendar
+            # Ako primarni kalendar ne radi, probaj "primary" sa istim timeout-om
             cmd[4] = "https://apidata.googleusercontent.com/caldav/v2/primary/events"
             response = subprocess.check_output(cmd, text=True, timeout=12)
 
@@ -71,7 +71,7 @@ def fetch_via_caldav(user, token):
         if not titles: return
 
         events = sorted(zip(starts, titles))
-        months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+        meseci = ["", "Јануар", "Фебруар", "Март", "Април", "Мај", "Јун", "Јул", "Август", "Септембар", "Октобар", "Новембар", "Децембар"]
         
         seen = set()
         for start, title in events:
@@ -83,8 +83,8 @@ def fetch_via_caldav(user, token):
                 d = start[6:8]
                 m_index = int(start[4:6])
                 m = meseci[m_index]
-                time_str = f"[{start[9:11]}:{start[11:13]}] " if "T" in start else ""
-                print(f"{d}. {m}  —  {time_str}{clean_title}")
+                vreme = f"[{start[9:11]}:{start[11:13]}] " if "T" in start else ""
+                print(f"{d}. {m}  —  {vreme}{clean_title}")
             except: continue
             
     except: pass
