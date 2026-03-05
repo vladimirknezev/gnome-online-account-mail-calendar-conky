@@ -2,13 +2,12 @@ import subprocess
 import imaplib
 import email
 import dbus
-import socket  
+import socket
 from email.header import decode_header
 from email.utils import parsedate_to_datetime
 
-# KEY SOLUTION AGAINST "ZOMBIE" PROCESSES:
-# If any network operation takes longer than 10 seconds, the script terminates.
-# This prevents Conky from freezing and allows it to restart the script once the connection is back.
+# KEY: If any network operation takes longer than 10 seconds, the script terminates.
+# This prevents "zombie" processes and keeps Conky stable.
 socket.setdefaulttimeout(10)
 
 def get_online_accounts():
@@ -17,7 +16,7 @@ def get_online_accounts():
         bus = dbus.SessionBus()
         manager_obj = bus.get_object('org.gnome.OnlineAccounts', '/org/gnome/OnlineAccounts')
         manager = dbus.Interface(manager_obj, 'org.freedesktop.DBus.ObjectManager')
-        # Added timeout for DBus communication
+        # Timeout for DBus communication
         managed_objects = manager.GetManagedObjects(timeout=5)
         
         for path, interfaces in managed_objects.items():
@@ -42,14 +41,13 @@ def get_goa_token(acc_id):
         cmd = ["gdbus", "call", "--session", "--dest", "org.gnome.OnlineAccounts",
                "--object-path", f"/org/gnome/OnlineAccounts/Accounts/{acc_id}",
                "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
-        # Added timeout for gdbus call
         return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
     except: return None
 
 def process_mail_engine(server, user, token, count=2):
     mail = None
     try:
-        # Added timeout directly into the IMAP connection
+        # IMAP connection with timeout
         mail = imaplib.IMAP4_SSL(server, timeout=10)
         auth_string = f"user={user}\x01auth=Bearer {token}\x01\x01"
         mail.authenticate('XOAUTH2', lambda x: auth_string)
@@ -60,34 +58,34 @@ def process_mail_engine(server, user, token, count=2):
         
         if not mail_ids: return
 
-        print(f"--- {user.upper()} ---")
+        # Original logic: looping through last messages
         for mail_id in reversed(mail_ids[-count:]):
             res, msg_data = mail.fetch(mail_id, "(RFC822)")
             for response in msg_data:
                 if isinstance(response, tuple):
                     msg = email.message_from_bytes(response[1])
                     
-                    # 1. FROM (Sender)
-                    from_header = decode_header(msg.get("From", "Nepoznato"))[0]
+                    # 1. FROM
+                    from_header = decode_header(msg.get("From", "Unknown"))[0]
                     sender = from_header[0]
                     if isinstance(sender, bytes):
-                        sender = sender.decode(from_header[1] or "utf-8")
+                        sender = sender.decode(from_header[1] or "utf-8", errors='ignore')
                     
                     # 2. SUBJECT
-                    subject_header = decode_header(msg.get("Subject", "Bez naslova"))[0]
+                    subject_header = decode_header(msg.get("Subject", "No Subject"))[0]
                     subject = subject_header[0]
                     if isinstance(subject, bytes):
-                        subject = subject.decode(subject_header[1] or "utf-8")
+                        subject = subject.decode(subject_header[1] or "utf-8", errors='ignore')
 
-                    # 3. TIME/DATE
+                    # 3. TIME
                     date_str = msg.get("Date")
                     try:
                         dt = parsedate_to_datetime(date_str).astimezone()
-                        formatted_date = dt.strftime("%d. %b %H:%M")
+                        formatted_date = dt.strftime("%d %b %H:%M")
                     except: 
                         formatted_date = date_str
 
-                    # 4. TEXT (Body)
+                    # 4. BODY (Your original payload logic)
                     body = ""
                     if msg.is_multipart():
                         for part in msg.walk():
@@ -102,16 +100,17 @@ def process_mail_engine(server, user, token, count=2):
                         body = payload.decode(msg.get_content_charset() or 'utf-8', errors='ignore')
 
                     clean_body = " ".join(body.replace("\n", " ").split())
-                    short_body = (clean_body[:100] + "...") if len(clean_body) > 100 else clean_body
+                    short_body = (clean_body[:80] + "...") if len(clean_body) > 80 else clean_body
 
-                    print(f"TIME/DATE: {formatted_date}")
+                    # Minimalist Output (Including Account Info)
+                    print(f"[{user.upper()}]")
+                    print(f"TIME: {formatted_date}")
                     print(f"FROM: {sender}")
-                    print(f"SUBJECT: {subject}")
-                    print(f"TEXT: {short_body}")
-                    print("-" * 40)
+                    print(f"SUBJ: {subject}")
+                    print(f"BODY: {short_body}")
+                    print("") # Space between emails
         mail.logout()
     except:
-        # In case of error/timeout, ensure script doesn't hang in memory
         if mail:
             try: mail.logout()
             except: pass
