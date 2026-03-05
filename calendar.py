@@ -71,7 +71,7 @@ def fetch_via_caldav(user, token):
         if not titles: return
 
         events = sorted(zip(starts, titles))
-        meseci = ["", "Јануар", "Фебруар", "Март", "Април", "Мај", "Јун", "Јул", "Август", "Септембар", "Октобар", "Новембар", "Децембар"]
+        months = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
         
         seen = set()
         for start, title in events:
