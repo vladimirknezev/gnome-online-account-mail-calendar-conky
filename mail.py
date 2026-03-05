@@ -1,0 +1,124 @@
+import subprocess
+import imaplib
+import email
+import dbus
+import socket  # DODATO: Za kontrolu mrežnog vremena
+from email.header import decode_header
+from email.utils import parsedate_to_datetime
+
+# KLJUČNO REŠENJE PROTIV "ZOMBIJA":
+# Ako bilo koja mrežna operacija traje duže od 10 sekundi, 
+# skripta se nasilno prekida. To omogućava Conky-ju da je pokrene ponovo čim dođe net.
+socket.setdefaulttimeout(10)
+
+def get_online_accounts():
+    accounts = []
+    try:
+        bus = dbus.SessionBus()
+        manager_obj = bus.get_object('org.gnome.OnlineAccounts', '/org/gnome/OnlineAccounts')
+        manager = dbus.Interface(manager_obj, 'org.freedesktop.DBus.ObjectManager')
+        # Dodat timeout za DBus komunikaciju
+        managed_objects = manager.GetManagedObjects(timeout=5)
+        
+        for path, interfaces in managed_objects.items():
+            if 'org.gnome.OnlineAccounts.Account' in interfaces:
+                acc_props = interfaces['org.gnome.OnlineAccounts.Account']
+                acc_id = path.split('/')[-1]
+                email_addr = str(acc_props['PresentationIdentity'])
+                
+                server = None
+                if "gmail.com" in email_addr:
+                    server = "imap.gmail.com"
+                elif "hotmail.com" in email_addr or "outlook.com" in email_addr:
+                    server = "imap-mail.outlook.com"
+                
+                if server:
+                    accounts.append({'id': acc_id, 'user': email_addr, 'server': server})
+    except: pass
+    return accounts
+
+def get_goa_token(acc_id):
+    try:
+        cmd = ["gdbus", "call", "--session", "--dest", "org.gnome.OnlineAccounts",
+               "--object-path", f"/org/gnome/OnlineAccounts/Accounts/{acc_id}",
+               "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
+        # Dodat timeout za gdbus poziv
+        return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
+    except: return None
+
+def process_mail_engine(server, user, token, count=2):
+    mail = None
+    try:
+        # Dodat timeout direktno u IMAP konekciju
+        mail = imaplib.IMAP4_SSL(server, timeout=10)
+        auth_string = f"user={user}\x01auth=Bearer {token}\x01\x01"
+        mail.authenticate('XOAUTH2', lambda x: auth_string)
+        mail.select("INBOX", readonly=True)
+        
+        status, messages = mail.search(None, 'ALL') 
+        mail_ids = messages[0].split()
+        
+        if not mail_ids: return
+
+        print(f"--- {user.upper()} ---")
+        for mail_id in reversed(mail_ids[-count:]):
+            res, msg_data = mail.fetch(mail_id, "(RFC822)")
+            for response in msg_data:
+                if isinstance(response, tuple):
+                    msg = email.message_from_bytes(response[1])
+                    
+                    # 1. OD KOGA
+                    from_header = decode_header(msg.get("From", "Nepoznato"))[0]
+                    sender = from_header[0]
+                    if isinstance(sender, bytes):
+                        sender = sender.decode(from_header[1] or "utf-8")
+                    
+                    # 2. NASLOV
+                    subject_header = decode_header(msg.get("Subject", "Bez naslova"))[0]
+                    subject = subject_header[0]
+                    if isinstance(subject, bytes):
+                        subject = subject.decode(subject_header[1] or "utf-8")
+
+                    # 3. VREME
+                    date_str = msg.get("Date")
+                    try:
+                        dt = parsedate_to_datetime(date_str).astimezone()
+                        formatted_date = dt.strftime("%d. %b %H:%M")
+                    except: 
+                        formatted_date = date_str
+
+                    # 4. TEKST (Body) - TVOJA ORIGINALNA LOGIKA
+                    body = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            if part.get_content_type() == "text/plain":
+                                try:
+                                    payload = part.get_payload(decode=True)
+                                    body = payload.decode(part.get_content_charset() or 'utf-8', errors='ignore')
+                                    break
+                                except: pass
+                    else:
+                        payload = msg.get_payload(decode=True)
+                        body = payload.decode(msg.get_content_charset() or 'utf-8', errors='ignore')
+
+                    clean_body = " ".join(body.replace("\n", " ").split())
+                    short_body = (clean_body[:100] + "...") if len(clean_body) > 100 else clean_body
+
+                    print(f"VREME: {formatted_date}")
+                    print(f"OD: {sender}")
+                    print(f"NASLOV: {subject}")
+                    print(f"TEKST: {short_body}")
+                    print("-" * 40)
+        mail.logout()
+    except:
+        # Ako dođe do greške (timeout), ovde osiguravamo da skripta ne ostane u memoriji
+        if mail:
+            try: mail.logout()
+            except: pass
+
+if __name__ == "__main__":
+    nalozi = get_online_accounts()
+    for nalog in nalozi:
+        token = get_goa_token(nalog['id'])
+        if token:
+            process_mail_engine(nalog['server'], nalog['user'], token)
