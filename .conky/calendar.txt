@@ -19,13 +19,13 @@ conky.config = {
     update_interval = 1.0, 
     use_xft = true,
     font = 'Roboto-Light:pixelsize=10',
-    color1 = '00ffff', -- Tirkizna
-    color2 = 'fff000', -- Žuta
-    color3 = 'ffffff', -- Bela
-    color4 = '3cffa8', -- Mint zelena
-    color5 = 'ff5c5c', -- Crvenkasta
-    color6 = 'af87ff', -- Ljubičasta
-    color7 = 'ff00ff', -- Magenta/Roza
+    color1 = '00ffff',
+    color2 = 'fff000',
+    color3 = 'ffffff',
+    color4 = '3cffa8',
+    color5 = 'ff5c5c',
+    color6 = 'af87ff',
+    color7 = 'ff00ff',
 };
 
 conky.text = [[
