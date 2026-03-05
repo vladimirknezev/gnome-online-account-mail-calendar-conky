@@ -2,13 +2,13 @@ import subprocess
 import imaplib
 import email
 import dbus
-import socket
+import socket  # DODATO: Za kontrolu mrežnog vremena
 from email.header import decode_header
 from email.utils import parsedate_to_datetime
 
-# KEY SOLUTION AGAINST "ZOMBIE" PROCESSES:
-# If any network operation takes longer than 10 seconds, the script terminates.
-# This prevents Conky from freezing and allows it to restart the script once the connection is back.
+# KLJUČNO REŠENJE PROTIV "ZOMBIJA":
+# Ako bilo koja mrežna operacija traje duže od 10 sekundi, 
+# skripta se nasilno prekida. To omogućava Conky-ju da je pokrene ponovo čim dođe net.
 socket.setdefaulttimeout(10)
 
 def get_online_accounts():
@@ -17,7 +17,7 @@ def get_online_accounts():
         bus = dbus.SessionBus()
         manager_obj = bus.get_object('org.gnome.OnlineAccounts', '/org/gnome/OnlineAccounts')
         manager = dbus.Interface(manager_obj, 'org.freedesktop.DBus.ObjectManager')
-        # Added timeout for DBus communication
+        # Dodat timeout za DBus komunikaciju
         managed_objects = manager.GetManagedObjects(timeout=5)
         
         for path, interfaces in managed_objects.items():
@@ -42,14 +42,14 @@ def get_goa_token(acc_id):
         cmd = ["gdbus", "call", "--session", "--dest", "org.gnome.OnlineAccounts",
                "--object-path", f"/org/gnome/OnlineAccounts/Accounts/{acc_id}",
                "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
-        # Added timeout for gdbus call
+        # Dodat timeout za gdbus poziv
         return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
     except: return None
 
 def process_mail_engine(server, user, token, count=2):
     mail = None
     try:
-        # Added timeout directly into the IMAP connection
+        # Dodat timeout direktno u IMAP konekciju
         mail = imaplib.IMAP4_SSL(server, timeout=10)
         auth_string = f"user={user}\x01auth=Bearer {token}\x01\x01"
         mail.authenticate('XOAUTH2', lambda x: auth_string)
@@ -67,19 +67,19 @@ def process_mail_engine(server, user, token, count=2):
                 if isinstance(response, tuple):
                     msg = email.message_from_bytes(response[1])
                     
-                    # 1. FROM (Sender)
+                    # 1. OD KOGA
                     from_header = decode_header(msg.get("From", "Nepoznato"))[0]
                     sender = from_header[0]
                     if isinstance(sender, bytes):
                         sender = sender.decode(from_header[1] or "utf-8")
                     
-                    # 2. SUBJECT
+                    # 2. NASLOV
                     subject_header = decode_header(msg.get("Subject", "Bez naslova"))[0]
                     subject = subject_header[0]
                     if isinstance(subject, bytes):
                         subject = subject.decode(subject_header[1] or "utf-8")
 
-                    # 3. TIME/DATE
+                    # 3. VREME
                     date_str = msg.get("Date")
                     try:
                         dt = parsedate_to_datetime(date_str).astimezone()
@@ -87,7 +87,7 @@ def process_mail_engine(server, user, token, count=2):
                     except: 
                         formatted_date = date_str
 
-                    # 4. TEXT (Body)
+                    # 4. TEKST (Body) - TVOJA ORIGINALNA LOGIKA
                     body = ""
                     if msg.is_multipart():
                         for part in msg.walk():
@@ -111,7 +111,7 @@ def process_mail_engine(server, user, token, count=2):
                     print("-" * 40)
         mail.logout()
     except:
-        # In case of error/timeout, ensure script doesn't hang in memory
+        # Ako dođe do greške (timeout), ovde osiguravamo da skripta ne ostane u memoriji
         if mail:
             try: mail.logout()
             except: pass
