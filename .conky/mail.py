@@ -58,7 +58,9 @@ def process_mail_engine(server, user, token, count=2):
         
         if not mail_ids: return
 
-        # Original logic: looping through last messages
+        # HEADER STYLE: Matches your provided screenshots
+        print(f"--- {user.upper()} ---")
+
         for mail_id in reversed(mail_ids[-count:]):
             res, msg_data = mail.fetch(mail_id, "(RFC822)")
             for response in msg_data:
@@ -81,11 +83,12 @@ def process_mail_engine(server, user, token, count=2):
                     date_str = msg.get("Date")
                     try:
                         dt = parsedate_to_datetime(date_str).astimezone()
+                        # Clean date format: "05 Mar 13:33"
                         formatted_date = dt.strftime("%d %b %H:%M")
                     except: 
                         formatted_date = date_str
 
-                    # 4. BODY (Your original payload logic)
+                    # 4. BODY (Filtering for plain text to avoid raw HTML)
                     body = ""
                     if msg.is_multipart():
                         for part in msg.walk():
@@ -102,13 +105,13 @@ def process_mail_engine(server, user, token, count=2):
                     clean_body = " ".join(body.replace("\n", " ").split())
                     short_body = (clean_body[:80] + "...") if len(clean_body) > 80 else clean_body
 
-                    # Minimalist Output (Including Account Info)
-                    print(f"[{user.upper()}]")
+                    # OUTPUT: Standardized labels and separators
                     print(f"TIME: {formatted_date}")
                     print(f"FROM: {sender}")
                     print(f"SUBJ: {subject}")
                     print(f"BODY: {short_body}")
-                    print("") # Space between emails
+                    print("-" * 40) # Line separator matching your style
+        
         mail.logout()
     except:
         if mail:
