@@ -17,7 +17,6 @@ def get_online_accounts():
         bus = dbus.SessionBus()
         manager_obj = bus.get_object('org.gnome.OnlineAccounts', '/org/gnome/OnlineAccounts')
         manager = dbus.Interface(manager_obj, 'org.freedesktop.DBus.ObjectManager')
-        
         # Added timeout for DBus communication
         managed_objects = manager.GetManagedObjects(timeout=5)
         
@@ -35,8 +34,7 @@ def get_online_accounts():
                 
                 if server:
                     accounts.append({'id': acc_id, 'user': email_addr, 'server': server})
-    except: 
-        pass
+    except: pass
     return accounts
 
 def get_goa_token(acc_id):
@@ -46,8 +44,7 @@ def get_goa_token(acc_id):
                "--method", "org.gnome.OnlineAccounts.OAuth2Based.GetAccessToken"]
         # Added timeout for gdbus call
         return subprocess.check_output(cmd, text=True, timeout=5).split("'")[1]
-    except: 
-        return None
+    except: return None
 
 def process_mail_engine(server, user, token, count=2):
     mail = None
@@ -61,8 +58,7 @@ def process_mail_engine(server, user, token, count=2):
         status, messages = mail.search(None, 'ALL') 
         mail_ids = messages[0].split()
         
-        if not mail_ids: 
-            return
+        if not mail_ids: return
 
         print(f"--- {user.upper()} ---")
         for mail_id in reversed(mail_ids[-count:]):
@@ -100,8 +96,7 @@ def process_mail_engine(server, user, token, count=2):
                                     payload = part.get_payload(decode=True)
                                     body = payload.decode(part.get_content_charset() or 'utf-8', errors='ignore')
                                     break
-                                except: 
-                                    pass
+                                except: pass
                     else:
                         payload = msg.get_payload(decode=True)
                         body = payload.decode(msg.get_content_charset() or 'utf-8', errors='ignore')
@@ -118,10 +113,8 @@ def process_mail_engine(server, user, token, count=2):
     except:
         # In case of error/timeout, ensure script doesn't hang in memory
         if mail:
-            try: 
-                mail.logout()
-            except: 
-                pass
+            try: mail.logout()
+            except: pass
 
 if __name__ == "__main__":
     accounts = get_online_accounts()
