@@ -16,4 +16,4 @@ This repository contains Python scripts designed to fetch data from **GNOME Onli
 ## 🛠️ Requirements
 Make sure you have the following packages installed (example for Ubuntu/Debian):
 ```bash
-sudo apt install python3-dbus python3-gi gir1.2-edataserver-1.2 libsecret-tools
+sudo apt install python3-dbus python3-gi gir1.2-edataserver-1.2 libsecret-tools gnome-online-accounts-gtk
