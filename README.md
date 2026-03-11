@@ -1,13 +1,14 @@
-# 🚀 gnome-online-account-mail-calendar-conky
+# 🚀 gnome-online-account-mail-calendar-contact-conky-xfce4-genmon-plugin
 
-**A Python script that fetches mail and calendar via GNOME Online Accounts for Conky, with built-in timeout protection against zombie processes.**
+A Python-based productivity suite for Linux. Monitor mail and calendar via Conky, and interact with your Google Contacts directly from the XFCE panel—all protected by built-in "anti-zombie" timeout logic.
 
 ---
 
 ## 🌟 Key Features
-* **🛡️ Zombie Process Protection:** Uses `socket.setdefaulttimeout()` to ensure the script terminates if the network hangs, preventing Conky from freezing or piling up background processes.
-* **🔐 Secure Authentication:** Utilizes GOA's OAuth2 tokens. No need to hardcode your passwords into the scripts.
-* **⚡ Lightweight:** Designed to run as a background hook for Conky with minimal resource usage.
+* **🛡️ Zombie Process Protection: Every script uses socket.setdefaulttimeout() to ensure the process terminates if the network hangs, preventing system freezes or resource accumulation.
+* **🕹️ XFCE Cockpit Module: Beyond passive monitoring, you can now search contacts and copy phone numbers directly from your system panel using the interactive Genmon integration.
+* **🔐 Secure Authentication: Utilizes GOA's OAuth2 tokens. No need to hardcode your passwords into the scripts.
+* **⚡ Lightweight & Minimalist: Designed for power users who value system efficiency and native functionality over heavy extensions.
 
 ---
 
@@ -46,7 +47,7 @@ sudo apt install python3-dbus python3-gi gir1.2-edataserver-1.2 libsecret-tools 
 ```
 ---
 
-## 📖 Setup Instructions
+## 📖 Setup Instructions Mail and Calendar
 Follow these steps to get the scripts running on your system:
 
 1️⃣ GNOME Online Accounts (GOA) Login
@@ -85,7 +86,43 @@ This shows how the script automatically groups unread emails by account (IMAP an
 ### 📅 Calendar and Holidays
 Display of upcoming religious, national holidays, and personal reminders.
 ![Calendar Preview](calendar.png)
+
 ---
+
+## 🛠️ NEW: XFCE Desktop Integration (The Cockpit Module)
+
+This is a standalone interactive module designed specifically for **XFCE Desktop** users. It allows you to search contacts and monitor mail directly from your system panel using the `Genmon` plugin.
+
+### 📁 Cockpit Scripts
+* **`contacts.py`**: High-speed SQLite search for Google Contacts. Supports **Reverse Lookup** (search by name or phone number).
+* **`contacts_launcher.sh`**: Bash wrapper that triggers the Zenity interface and copies numbers to the clipboard via `xclip`.
+
+### 📦 Installation (Prerequisites)
+To use the Cockpit Module, run:
+```bash
+sudo apt install -y python3 sqlite3 zenity xclip libnotify-bin xfce4-genmon-plugin gnome-online-accounts-gtk evolution-data-server
+```
+## 📖 Setup Instructions Contact
+1️⃣ GNOME Online Accounts (GOA) Login
+Open your system Settings and navigate to Online Accounts.
+
+Log in to your Google. The scripts will automatically detect these sessions.
+
+2️⃣ Folder Configuration & Permissions
+```bash
+mkdir -p ~/.script
+# Copy contacts.py and contacts_launcher.sh to this folder
+chmod +x ~/.script/*.py
+chmod +x ~/.script/*.sh
+```
+3️⃣Add to XFCE Panel:
+Right-click XFCE Panel -> Add New Items -> Generic Monitor (Genmon).
+Right-click the new icon -> Properties.
+```bash
+bash -c "~/.script/contact_genmon.sh"
+```
+Label: Uncheck (Hidden).
+* **Period (s):** `3600` (Or set to `0` to trigger ONLY on manual click, preventing unexpected pop-ups).
 ## ⚖️ License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
