@@ -94,8 +94,8 @@ Display of upcoming religious, national holidays, and personal reminders.
 This is a standalone interactive module designed specifically for **XFCE Desktop** users. It allows you to search contacts and monitor mail directly from your system panel using the `Genmon` plugin.
 
 ### 📁 Cockpit Scripts
-* **`contacts.py`**: High-speed SQLite search for Google Contacts. Supports **Reverse Lookup** (search by name or phone number).
-* **`contacts_launcher.sh`**: Bash wrapper that triggers the Zenity interface and copies numbers to the clipboard via `xclip`.
+* **`contact.py`**: High-speed SQLite search for Google Contacts. Supports **Reverse Lookup** (search by name or phone number).
+* **`contact_genmon.sh`**: Bash wrapper that triggers the Zenity interface and copies numbers to the clipboard via `xclip`.
 
 ### 📦 Installation (Prerequisites)
 To use the Cockpit Module, run:
