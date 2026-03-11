@@ -43,7 +43,7 @@ No Main Password: Using App Passwords ensures your primary account password rema
 Make sure you have the following packages installed (example for Ubuntu/Debian):
 
 ```bash
-sudo apt install python3-dbus python3-gi gir1.2-edataserver-1.2 libsecret-tools gnome-online-accounts-gtk
+sudo apt install -y python3-dbus python3-gi gir1.2-edataserver-1.2 libsecret-tools gnome-online-accounts-gtk
 ```
 ---
 
